@@ -28,26 +28,24 @@ class GameObjectModel:
         else:
             return False
 
-    def move(self, input_handler):
+    def move(self, letter):
         """
 
-        :param input_handler: InputHandler
+        :param letter: char
         :return: bool
         """
 
         self.prev_coords = copy.copy(self.coords)
-        letter = input_handler.get_value()
 
-        if letter == 'w':
+        if letter == 's':
             self.coords.add_y(-1)
         if letter == 'a':
             self.coords.add_x(-1)
-        if letter == 's':
+        if letter == 'w':
             self.coords.add_y(1)
         if letter == 'd':
             self.coords.add_x(1)
-        if letter == 'q':
-            input_handler.set_data(False)
+        self.draw_coord = self.coords.mult_coords(TILE_SIZE[0], TILE_SIZE[1])
 
     def undo_move(self):
         self.coords = copy.copy(self.prev_coords)

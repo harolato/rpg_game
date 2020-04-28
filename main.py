@@ -1,5 +1,6 @@
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle
 from kivy.properties import (
@@ -66,7 +67,6 @@ class GameObject(Widget):
             Rectangle(
                 pos=self.entity.draw_coord,
                 source=self.entity.tile,
-                # color=Color(255,0,0),
                 size=TILE_SIZE
             )
 
@@ -81,6 +81,7 @@ class Actor(Widget):
     def draw(self):
         self.size = TILE_SIZE
         self.pos = self.entity.draw_coord
+        self.canvas.clear()
         with self.canvas:
             Rectangle(
                 pos=self.entity.draw_coord,
@@ -101,21 +102,37 @@ class BongGame(Widget):
     player_object = None
     game_objects = []
     toolbar = None
+    label = None
 
     def __init__(self, **kwargs):
         super(BongGame, self).__init__(**kwargs)
         self.toolbar = RelativeLayout(pos=(100, 50))
-        label = Label(text='test')
+        label = Label(text='')
+        self.label = label
         self.toolbar.add_widget(label)
         self.add_widget(self.toolbar)
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
+
+    def _keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        self.player_object.move(keycode[1])
+        return True
 
     def set_player(self, player):
         self.player_object = player
 
     def add_object(self, obj):
         self.add_widget(obj)
-        obj.draw()
         self.game_objects.append(obj)
+
+    def update(self, dt):
+        self.label.text = str(self.player_object)
+        for obj in self.game_objects:
+            obj.draw()
 
 
 class RootWidget(FloatLayout):
@@ -171,9 +188,9 @@ class BongApp(App):
         game.add_object(tree1)
         game.add_object(tree2)
 
-        game.set_player(player)
+        game.set_player(player.entity)
 
-        # Clock.schedule_interval(game.update, 1.0 / 60.0)
+        Clock.schedule_interval(game.update, 1.0 / 60.0)
 
         root = RootWidget()
         root.add_widget(tiles_widget)
