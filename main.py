@@ -1,3 +1,4 @@
+from kivy.animation import Animation
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -59,6 +60,7 @@ class GameObject(Widget):
     def __init__(self, actor_obj, **kwargs):
         super(GameObject, self).__init__(**kwargs)
         self.entity = actor_obj
+        self.draw()
 
     def draw(self):
         self.size = TILE_SIZE
@@ -73,21 +75,32 @@ class GameObject(Widget):
 
 class Actor(Widget):
     entity = None
+    rect = None
+
+    sequence = 1
+    direction = 0
+    sprite_anim_clock = None
 
     def __init__(self, actor_obj, **kwargs):
         super(Actor, self).__init__(**kwargs)
         self.entity = actor_obj
+        self.draw()
+        self.bind(pos=self.update_position)
+
+    def update_position(self, *args):
+        self.rect.pos = self.pos
 
     def draw(self):
         self.size = TILE_SIZE
         self.pos = self.entity.draw_coord
         self.canvas.clear()
         with self.canvas:
-            Rectangle(
+            self.rect = Rectangle(
                 pos=self.entity.draw_coord,
                 source=self.entity.tile,
                 # color=Color(255,0,0),
                 size=TILE_SIZE
+
             )
 
     def on_touch_down(self, touch, after=False):
@@ -96,6 +109,20 @@ class Actor(Widget):
             return True
         self.parent.toolbar.children[0].text = ''
         return super(Actor, self).on_touch_down(touch)
+
+    def start_sprite_anim(self, *args):
+        self.stop_sprite_anim()
+        self.sprite_anim_clock = Clock.schedule_interval(self.do_sprite_anim, 0.5)
+
+    def do_sprite_anim(self, *args):
+        self.rect.source = 'assets/objects/ChickenWalking_0{}.png'.format(self.sequence)
+        if self.sequence >= 4:
+            self.sequence = 1
+        else:
+            self.sequence += 1
+
+    def stop_sprite_anim(self, *args):
+        Clock.unschedule(self.sprite_anim_clock)
 
 
 class BongGame(Widget):
@@ -119,7 +146,11 @@ class BongGame(Widget):
         self._keyboard = None
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        self.player_object.move(keycode[1])
+        self.player_object.entity.move(keycode[1])
+        move_anim = Animation(pos=self.player_object.entity.draw_coord, duration=1)
+        move_anim.bind(on_start=self.player_object.start_sprite_anim)
+        move_anim.bind(on_complete=self.player_object.stop_sprite_anim)
+        move_anim.start(self.player_object)
         return True
 
     def set_player(self, player):
@@ -130,9 +161,9 @@ class BongGame(Widget):
         self.game_objects.append(obj)
 
     def update(self, dt):
-        self.label.text = str(self.player_object)
-        for obj in self.game_objects:
-            obj.draw()
+        self.label.text = str(self.player_object.entity)
+        # for obj in self.game_objects:
+        #     obj.draw()
 
 
 class RootWidget(FloatLayout):
@@ -188,7 +219,7 @@ class BongApp(App):
         game.add_object(tree1)
         game.add_object(tree2)
 
-        game.set_player(player.entity)
+        game.set_player(player)
 
         Clock.schedule_interval(game.update, 1.0 / 60.0)
 
