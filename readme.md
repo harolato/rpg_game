@@ -1,3 +1,6 @@
+**RPG Game developed on Kivy framework**
+
+
 To install required packages:
 
 *Conda*:
