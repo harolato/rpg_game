@@ -125,14 +125,14 @@ class Actor(Widget):
         Clock.unschedule(self.sprite_anim_clock)
 
 
-class BongGame(Widget):
+class RpgGame(Widget):
     player_object = None
     game_objects = []
     toolbar = None
     label = None
 
     def __init__(self, **kwargs):
-        super(BongGame, self).__init__(**kwargs)
+        super(RpgGame, self).__init__(**kwargs)
         self.toolbar = RelativeLayout(pos=(100, 50))
         label = Label(text='')
         self.label = label
@@ -172,12 +172,12 @@ class RootWidget(FloatLayout):
         super(RootWidget, self).__init__(**kwargs)
 
 
-class BongApp(App):
+class RpgApp(App):
     def build(self):
         tiles_widget = Map(size=WINDOW_SIZE, pos=(0, 0))
         tiles_widget.draw()
 
-        game = BongGame(size=WINDOW_SIZE)
+        game = RpgGame(size=WINDOW_SIZE)
 
         player = Actor(
             ActorModel(
@@ -232,4 +232,4 @@ class BongApp(App):
 
 
 if __name__ == '__main__':
-    BongApp().run()
+    RpgApp().run()
