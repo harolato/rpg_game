@@ -26,6 +26,7 @@ from models.coord import Coord
 
 class Map(RelativeLayout):
     tiles = []
+    print(2+2)
 
     def __init__(self, **kwargs):
         super(Map, self).__init__(**kwargs)
